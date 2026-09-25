@@ -1,18 +1,20 @@
-name: Deploy Plugin to S3
+name: Shared Plugin Deploy to S3
 
 on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
-
-permissions:
-  id-token: write
-  contents: read
+  workflow_call:
+    inputs:
+      node-version:
+        required: false
+        type: string
+        default: "22"
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
     steps:
       - uses: actions/checkout@v4
 
@@ -22,7 +24,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: ${{ inputs.node-version }}
           cache: "pnpm"
 
       - name: Build Plugin
@@ -41,7 +43,7 @@ jobs:
       - name: Configure AWS Credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::033541889046:role/GitHubActionsPluginsS3DeployRole
+          role-to-assume: arn:aws:iam::033541889046:role/PluginsS3DeployRole
           aws-region: sa-east-1
 
       - name: Upload to S3
